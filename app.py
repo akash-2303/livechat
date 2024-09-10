@@ -4,7 +4,7 @@ from multiprocessing import Process, Event
 import time
 import os
 import argparse
-
+import db_utils
 
 #Initializing flask and handling command line arguments
 parser = argparse.ArgumentParser(description="Run a Flask app for YouTube live chat fetching.")
@@ -69,6 +69,16 @@ def stop_chat():
     if fetch_process and fetch_process.is_alive():
         fetch_process.join()
     return jsonify(message='Stopped fetching chat messages')
+
+# @app.route('/add_comment', methods=['POST'])
+# def add_comment():
+#     try:
+#         data = request.get_json()
+#         db_utils.push_comment_to_db(data)
+
+#         return jsonify({"message": "Comment added successfully!"}), 201
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
 
 # if __name__ == '__main__':
 #     app.run(debug=True, threaded=True)
