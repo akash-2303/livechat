@@ -3,14 +3,20 @@ import pytchat
 from multiprocessing import Process, Event
 import time
 import os
+import argparse
+
+# Setup argparse to handle command line arguments
+parser = argparse.ArgumentParser(description="Run a Flask app for YouTube live chat fetching.")
+parser.add_argument('--chatfile', type=str, default='chat_messages.txt',
+                    help='Filename to store chat messages.')
+args = parser.parse_args()
 
 app = Flask(__name__)
 
-# File to store chat messages
-CHAT_FILE = 'chat_messages.txt'
+# Use the provided filename or the default 'chat_messages.txt'
+CHAT_FILE = args.chatfile
 stop_event = Event()
 fetch_process = None  # Initialize globally
-
 
 def fetch_chat_messages(video_id):
     chat = pytchat.create(video_id=video_id)
@@ -26,27 +32,19 @@ def fetch_chat_messages(video_id):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global fetch_process  # Declare fetch_process as global to modify it
-
+    global fetch_process
     if request.method == 'POST':
         video_id = request.form.get('video_id')
         if video_id:
-            # Stop any existing chat fetching process
             if fetch_process and fetch_process.is_alive():
                 stop_event.set()
                 fetch_process.join()
-
             stop_event.clear()
-            # Clear previous chat messages
             if os.path.exists(CHAT_FILE):
                 os.remove(CHAT_FILE)
-
-            # Start a new process to fetch chat messages
             fetch_process = Process(target=fetch_chat_messages, args=(video_id,))
             fetch_process.start()
-
     return render_template('index.html')
-
 
 @app.route('/events')
 def stream():
@@ -61,15 +59,13 @@ def stream():
                     time.sleep(1)
     return Response(generate(), mimetype='text/event-stream')
 
-
 @app.route('/stop', methods=['POST'])
 def stop_chat():
-    global fetch_process  # Declare fetch_process as global to modify it
+    global fetch_process
     stop_event.set()
     if fetch_process and fetch_process.is_alive():
         fetch_process.join()
-    return jsonify(message='Stopped fetching chat messages'), 200
-
+    return jsonify(message='Stopped fetching chat messages')
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)
