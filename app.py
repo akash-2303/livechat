@@ -14,21 +14,15 @@ fetch_process = None  # Initialize globally
 
 def fetch_chat_messages(video_id):
     chat = pytchat.create(video_id=video_id)
-    with open(CHAT_FILE, 'w', encoding='utf-8') as file:  # Ensure file is opened with utf-8 encoding
+    with open(CHAT_FILE, 'w', encoding='utf-8') as file:
         while chat.is_alive() and not stop_event.is_set():
             for c in chat.get().sync_items():
                 try:
-                    # Attempt to write the message to the file
                     file.write(f"{c.datetime} [{c.author.name}] - {c.message}\n")
-                except UnicodeEncodeError:
-                    # Handle the case where a message cannot be encoded into the file's encoding
-                    # Optionally replace problematic characters or log the error
-                    safe_message = c.message.encode('ascii', errors='ignore').decode('ascii')
-                    file.write(f"{c.datetime} [{c.author.name}] - {safe_message}\n")
-                file.flush()  # Ensure data is written to disk
-            time.sleep(1)  # Brief sleep to avoid overwhelming the API
-
-
+                except Exception as e:
+                    print(f"Failed to write message due to: {e}")
+                file.flush()
+            time.sleep(1)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -58,28 +52,14 @@ def index():
 def stream():
     def generate():
         with open(CHAT_FILE, 'r', encoding='utf-8') as file:
-            file.seek(0, os.SEEK_END)  # Start reading from the end of the file
+            file.seek(0, os.SEEK_END)
             while not stop_event.is_set():
                 line = file.readline()
                 if line:
                     yield f"data: {line.strip()}\n\n"
                 else:
-                    time.sleep(1)  # Sleep if no new line is available
+                    time.sleep(1)
     return Response(generate(), mimetype='text/event-stream')
-
-
-# @app.route('/events')
-# def stream():
-#     def generate():
-#         with open(CHAT_FILE, 'r') as file:
-#             while True:
-#                 line = file.readline()
-#                 if line:
-#                     yield f"data: {line.strip()}\n\n"
-#                 else:
-#                     time.sleep(1)  # Sleep briefly to avoid tight loop
-
-#     return Response(generate(), mimetype='text/event-stream')
 
 
 @app.route('/stop', methods=['POST'])
