@@ -5,10 +5,13 @@ import time
 import os
 import argparse
 
-# Setup argparse to handle command line arguments
+
+#Initializing flask and handling command line arguments
 parser = argparse.ArgumentParser(description="Run a Flask app for YouTube live chat fetching.")
 parser.add_argument('--chatfile', type=str, default='chat_messages.txt',
                     help='Filename to store chat messages.')
+parser.add_argument('--port', type=int, default=5000,
+                    help='Port on which to run the Flask app.')
 args = parser.parse_args()
 
 app = Flask(__name__)
@@ -67,5 +70,8 @@ def stop_chat():
         fetch_process.join()
     return jsonify(message='Stopped fetching chat messages')
 
+# if __name__ == '__main__':
+#     app.run(debug=True, threaded=True)
+
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True)
+    app.run(debug=True, host='0.0.0.0', port=args.port, threaded=True)
