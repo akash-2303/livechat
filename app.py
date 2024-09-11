@@ -1,7 +1,8 @@
-import time
-import os
-import json
 import argparse
+import json
+import os
+import time
+from pathlib import Path
 
 from multiprocessing import Process, Event
 
@@ -33,16 +34,9 @@ def fetch_chat_messages(video_id):
 
 # Function to save messages to JSON
 def save_message_to_json(message, filename):
-    try:
-        # Attempt to load existing data
-        with open(filename, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        data = []
-
-    data.append(message)
-    with open(filename, 'w', encoding='utf-8') as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
+    with open(filename, 'a', encoding='utf-8') as file:
+        json.dump(message, file)
+        file.write("\n")
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -63,14 +57,18 @@ def index():
 @app.route('/events')
 def stream():
     def generate():
-        with open(CHAT_FILE, 'r', encoding='utf-8') as file:
-            file.seek(0, os.SEEK_END)
-            while not stop_event.is_set():
-                line = file.readline()
-                if line:
-                    yield f"data: {line.strip()}\n\n"
-                else:
-                    time.sleep(1)
+        if not Path(CHAT_FILE).is_file():
+            time.sleep(1)
+        else:
+            with open(CHAT_FILE, 'r', encoding='utf-8') as file:
+                file.seek(0, os.SEEK_END)
+                while not stop_event.is_set():
+                    line = file.readline().strip()
+                    if line:
+                        data = json.loads(line)
+                        yield f"data: {data['timestamp']}: {data['author']}: {data['message']}\n\n"
+                    else:
+                        time.sleep(1)
     return Response(generate(), mimetype='text/event-stream')
 
 
