@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "../Election-Data"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"sqltools.useNodeRuntime": true,
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "test",
+				"database": "${workspaceFolder:livechat}/database.db"
+			}
+		]
+	}
+}
