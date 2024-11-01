@@ -45,7 +45,7 @@ Each JSON object represents an individual comment, providing metadata such as au
 | `viewerRating`         | `String`   | Viewer’s rating on the comment, such as "like" or "dislike"; `null` if unavailable.               |
 | `isPublic`             | `Boolean`  | Indicates if the comment is public (`true`) or private (`false`).                                 |
 | `Source`               | `String`   | Platform or channel from which the comment originated (e.g., "Sky").                              |
-| `collector`            | `String`   | Custom field indicating the data collection team: 'Akash & Deeptika' 'Priyanshu' 'Deeptika & Priyanshu' 'Deeptika', etc.                  |
+| `collector`            | `String`   | Custom field indicating the data collection team: 'Akash & Deeptika', 'Priyanshu', 'Deeptika & Priyanshu', 'Deeptika'                  |
 | `debate_type`          | `String`   | Specifies the debate type, with "P" for presidential debates and "VP" for vice-presidential debates. |
 | `type`                 | `String`   | Type of content, which can be `comment` or `livechat`.                                            |
 
